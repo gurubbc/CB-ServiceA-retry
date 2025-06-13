@@ -1,0 +1,46 @@
+server:
+  port: 8082
+
+#Enable management endpoints  
+#Standrad configuration for actuator
+management:
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+    
+resilience4j:
+  circuitbreaker:
+    instances:
+      serviceA:
+        
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        # threshold %age
+        failureRateThreshold: 50 # 50% failure rate will trigger the circuit breaker
+        # If more than 50% of the calls fail, the circuit breaker will transition from CLOSED to OPEN.
+        minimumNumberOfCalls: 6 #Minimum number of calls required before failure rate is calculated.
+        automaticTransitionFromOpenToHalfOpenEnabled: true # Automatically transition from OPEN to HALF_OPEN state after waitDurationInOpenState
+        waitDurationInOpenState: 5s         # Time in milliseconds the circuit breaker stays open before entering half-open state
+        permittedNumberOfCallsInHalfOpenState: 2        # Number of requests allowed in half-open state to test if service is OK
+#         If these calls succeed, circuit breaker transitions back to CLOSED; otherwise, it goes back to OPEN.	
+        slidingWindowSize: 10 # Sliding window size for determining failure rate
+        slidingWindowType: COUNT_BASED # window tracks the last N Calls
+        # slidingWindowType can be TIME_BASED or COUNT_BASED
+#				TIME_BASED: window tracks the last N seconds
+        
+  retry:
+    instances:
+      serviceA:
+         max-attempts: 3
+         wait-duration: 3000ms
+
+logging:
+  level:
+    "[io.github.resilience4j]": DEBUG
